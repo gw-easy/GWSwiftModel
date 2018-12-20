@@ -59,15 +59,15 @@ class ViewController: UIViewController {
     
     func serialization() {
         let student = Student()
-        student.name = "Jack"
+        student.name = "gw"
         student.gender = .Female
-        student.subjects = [Subject(name: "Math", id: 1, credit: 23, lessonPeriod: 64), Subject(name: "English", id: 2, credit: 12, lessonPeriod: 32)]
+        student.subjects = [Subject(name: "gw_model", id: 1, credit: 23, lessonPeriod: 64), Subject(name: "English", id: 2, credit: 12, lessonPeriod: 32)]
         
-//        print(student.modelToJson()!)
+        print(student.modelToJson()!)
 //                print(student.modelToJsonString()!)
 //                print(student.modelToJsonString(prettyPrint: true)!)
         //
-                print([student].modelToJson())
+//                print([student].modelToJson())
         //        print([student].toJSONString()!)
         //        print([student].toJSONString(prettyPrint: true)!)
     }
