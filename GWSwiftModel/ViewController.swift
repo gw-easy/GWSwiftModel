@@ -63,11 +63,12 @@ class ViewController: UIViewController {
         student.gender = .Female
         student.subjects = [Subject(name: "gw_model", id: 1, credit: 23, lessonPeriod: 64), Subject(name: "English", id: 2, credit: 12, lessonPeriod: 32)]
         
+        
         print(student.modelToJson()!)
 //                print(student.modelToJsonString()!)
 //                print(student.modelToJsonString(prettyPrint: true)!)
         //
-//                print([student].modelToJson())
+                print([student].modelToJson())
         //        print([student].toJSONString()!)
         //        print([student].toJSONString(prettyPrint: true)!)
     }
@@ -75,13 +76,15 @@ class ViewController: UIViewController {
     func deserialization() {
         let jsonString = "{\"id\":\"77544\",\"json_name\":\"Tom Li\",\"age\":18,\"grade\":2,\"height\":180,\"gender\":\"Female\",\"className\":\"A\",\"teacher\":{\"name\":\"Lucy He\",\"age\":28,\"height\":172,\"gender\":\"Female\",},\"subjects\":[{\"name\":\"math\",\"id\":18000324583,\"credit\":4,\"lessonPeriod\":48},{\"name\":\"computer\",\"id\":18000324584,\"credit\":8,\"lessonPeriod\":64}],\"seat\":\"4-3-23\"}"
 
-        if let student = Student.jsonToModel(from: jsonString){
+//            Student.json_To_Model(json: jsonString, designatedPath: nil)
+        if let student = Student.jsonToModel(json: jsonString) as? GW_ModelAndJson{
             print(student.modelToJson() ?? "");
         }
         let arrayJSONString = "[{\"id\":\"77544\",\"json_name\":\"Tom Li\",\"age\":18,\"grade\":2,\"height\":180,\"gender\":\"Female\",\"className\":\"A\",\"teacher\":{\"name\":\"Lucy He\",\"age\":28,\"height\":172,\"gender\":\"Female\",},\"subjects\":[{\"name\":\"math\",\"id\":18000324583,\"credit\":4,\"lessonPeriod\":48},{\"name\":\"computer\",\"id\":18000324584,\"credit\":8,\"lessonPeriod\":64}],\"seat\":\"4-3-23\"}]"
         
-        if let students = [Student].jsonToModel(from: arrayJSONString){
-            print(students[0]!.modelToJson() ?? "");
+//        Student.json_To_Model(json: arrayJSONString, designatedPath: nil)
+        if let students = Student.jsonToModel(json: arrayJSONString) as? [GW_ModelAndJson]{
+            print(students[0].modelToJson() ?? "");
         }
 //        if let students = [Student].jsonToModel(from: arrayJSONString) {
 //            print(students.count)

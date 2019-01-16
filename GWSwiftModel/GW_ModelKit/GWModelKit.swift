@@ -14,7 +14,7 @@ public protocol GW_ModelAndJson : GWExpendModelType{
     
 }
 
-//model转json
+//model->json
 public extension GW_ModelAndJson{
     public func modelToJson() -> [String: Any]? {
         if let dict = Self._serializeAny(object: self) as? [String: Any] {
@@ -72,25 +72,23 @@ public extension Collection where Iterator.Element: GW_ModelAndJson {
     }
 }
 
-
-//json转model
+//MARK: model->json
 public extension GW_ModelAndJson{
-    /// Finds the internal dictionary in `dict` as the `designatedPath` specified, and converts it to a Model
-    /// `designatedPath` is a string like `result.data.orderInfo`, which each element split by `.` represents key of each layer
-    public static func jsonToModel(from dict: NSDictionary?, designatedPath: String? = nil) -> Self? {
-        return jsonToModel(from: dict as? [String: Any], designatedPath: designatedPath)
-    }
-    
-    /// Finds the internal dictionary in `dict` as the `designatedPath` specified, and converts it to a Model
-    /// `designatedPath` is a string like `result.data.orderInfo`, which each element split by `.` represents key of each layer
-    public static func jsonToModel(from dict: [String: Any]?, designatedPath: String? = nil) -> Self? {
-        return JSONDeserializer<Self>.jsonToModelFrom(dict: dict, designatedPath: designatedPath)
-    }
-    
-    /// Finds the internal JSON field in `json` as the `designatedPath` specified, and converts it to a Model
-    /// `designatedPath` is a string like `result.data.orderInfo`, which each element split by `.` represents key of each layer
-    public static func jsonToModel(from json: String?, designatedPath: String? = nil) -> Self? {
-        return JSONDeserializer<Self>.jsonToModelFrom(json: json, designatedPath: designatedPath)
+    public static func jsonToModel(json:Any?,designatedPath: String? = nil) -> Any?{
+        switch json {
+        case let ar as String:
+            return JSONDeserializer<Self>.jsonToModelFrom(json: ar, designatedPath: designatedPath)
+        case let ar as NSArray:
+            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar)
+        case let ar as [Any]:
+            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar)
+        case let ar as NSDictionary:
+            return JSONDeserializer<Self>.jsonToModelFrom(dict: ar, designatedPath: designatedPath)
+        case let ar as [String:Any]:
+            return JSONDeserializer<Self>.jsonToModelFrom(dict: ar, designatedPath: designatedPath)
+        default:
+            return nil
+        }
     }
 }
 
@@ -115,9 +113,10 @@ public class JSONDeserializer<T: GW_ModelAndJson> {
         return nil
     }
     
+    
     /// Finds the internal JSON field in `json` as the `designatedPath` specified, and converts it to Model
     /// `designatedPath` is a string like `result.data.orderInfo`, which each element split by `.` represents key of each layer, or nil
-    public static func jsonToModelFrom(json: String?, designatedPath: String? = nil) -> T? {
+    public static func jsonToModelFrom(json: String?, designatedPath: String? = nil) -> Any? {
         guard let _json = json else {
             return nil
         }
@@ -125,8 +124,11 @@ public class JSONDeserializer<T: GW_ModelAndJson> {
             let jsonObject = try JSONSerialization.jsonObject(with: _json.data(using: String.Encoding.utf8)!, options: .allowFragments)
             if let jsonDict = jsonObject as? NSDictionary {
                 return self.jsonToModelFrom(dict: jsonDict, designatedPath: designatedPath)
+            }else if let jsonArray = getInnerObject(inside: jsonObject, by: designatedPath) as? [Any] {
+                return jsonArray.map({ (item) -> T? in
+                    return self.jsonToModelFrom(dict: item as? [String: Any])
+                })
             }
-            
         } catch let error {
             print(error)
         }
@@ -161,24 +163,6 @@ public class JSONDeserializer<T: GW_ModelAndJson> {
         }
     }
     
-    /// if the JSON field found by `designatedPath` in `json` is representing a array, such as `[{...}, {...}, {...}]`,
-    /// this method converts it to a Models array
-    public static func jsonToModelArrayFrom(json: String?, designatedPath: String? = nil) -> [T?]? {
-        guard let _json = json else {
-            return nil
-        }
-        do {
-            let jsonObject = try JSONSerialization.jsonObject(with: _json.data(using: String.Encoding.utf8)!, options: .allowFragments)
-            if let jsonArray = getInnerObject(inside: jsonObject, by: designatedPath) as? [Any] {
-                return jsonArray.map({ (item) -> T? in
-                    return self.jsonToModelFrom(dict: item as? [String: Any])
-                })
-            }
-        } catch let error {
-            print(error)
-        }
-        return nil
-    }
     
     /// mapping raw array to Models array
     public static func jsonToModelArrayFrom(array: NSArray?) -> [T?]? {
@@ -196,32 +180,11 @@ public class JSONDeserializer<T: GW_ModelAndJson> {
     }
 }
 
-public extension Array where Element: GW_ModelAndJson {
-    
-    /// if the JSON field finded by `designatedPath` in `json` is representing a array, such as `[{...}, {...}, {...}]`,
-    /// this method converts it to a Models array
-    public static func jsonToModel(from json: String?, designatedPath: String? = nil) -> [Element?]? {
-        return JSONDeserializer<Element>.jsonToModelArrayFrom(json: json, designatedPath: designatedPath)
-    }
-    
-    /// deserialize model array from NSArray
-    public static func jsonToModel(from array: NSArray?) -> [Element?]? {
-        return JSONDeserializer<Element>.jsonToModelArrayFrom(array: array)
-    }
-    
-    /// deserialize model array from array
-    public static func jsonToModel(from array: [Any]?) -> [Element?]? {
-        return JSONDeserializer<Element>.jsonToModelArrayFrom(array: array)
-    }
-}
-
-
-
-//替换json中特殊字符
+//json路径替换
 fileprivate func getInnerObject(inside object: Any?, by designatedPath: String?) -> Any? {
     var result: Any? = object
     var abort = false
-    if let paths = designatedPath?.components(separatedBy: "."), paths.count > 0 {
+    if let paths = designatedPath?.components(separatedBy: "/"), paths.count > 0 {
         var next = object as? [String: Any]
         paths.forEach({ (seg) in
             if seg.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) == "" || abort {
