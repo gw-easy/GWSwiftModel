@@ -52,9 +52,46 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        self.serialization()
-        
+//        self.serialization()
+        self.addModelObject()
 //        self.deserialization()
+    }
+    
+    func test_json() {
+        
+    }
+    
+    func test_json2() {
+        
+    }
+    
+    func addModelObject() {
+        let path = Bundle.main.path(forResource: "ModelObject", ofType: "json")
+        
+        let jsonStr = try! String.init(contentsOfFile:path! , encoding: String.Encoding.utf8)
+        
+        if let tModel = TestModel.jsonToModel(json: jsonStr) as? TestModel{
+            printAction(obj:tModel.id)
+            printAction(obj:tModel.data)
+            printAction(obj:tModel.data?.feedbacks)
+            for par in tModel.data?.partnerteamlist ?? []{
+                printAction(obj: par.pteamId)
+                printAction(obj: par.pteamprice)
+                printAction(obj: par.setModel)
+                printAction(obj: par.setModel?.model1Str)
+                printAction(obj: par.setModel?.baseModel_Int)
+                printAction(obj: par.setModel?.baseMM_float)
+                printAction(obj: par.setModel?.baseM)
+                printAction(obj: par.ptitle)
+            }
+            printAction(obj:tModel.state)
+            printAction(obj:tModel.setModel)
+        }
+        
+    }
+    
+    func printAction(obj:Any?) {
+        print(obj ?? "")
     }
     
     func serialization() {

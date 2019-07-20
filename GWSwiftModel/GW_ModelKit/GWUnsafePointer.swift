@@ -92,9 +92,6 @@ extension GW_Pointer{
         return MemoryLayout<Self>.alignment
     }
     
-    // Returns the offset to the next integer that is greater than
-    // or equal to Value and is a multiple of Align. Align must be
-    // non-zero.
     static func offsetToAlignment(value: Int, align: Int) -> Int {
         let m = value % align
         return m == 0 ? 0 : (align - m)

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2810234122E1B87500849D0D /* ModelObject.json in Resources */ = {isa = PBXBuildFile; fileRef = 2810233E22E1B87400849D0D /* ModelObject.json */; };
+		2810234222E1B87500849D0D /* test_json.json in Resources */ = {isa = PBXBuildFile; fileRef = 2810233F22E1B87400849D0D /* test_json.json */; };
+		2810234322E1B87500849D0D /* test_json2.json in Resources */ = {isa = PBXBuildFile; fileRef = 2810234022E1B87500849D0D /* test_json2.json */; };
+		2810234522E1B8E500849D0D /* ModelTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2810234422E1B8E500849D0D /* ModelTest.swift */; };
 		28E51C1C21CB6F7100D4A6F4 /* GWModelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E51C1821CB6F7100D4A6F4 /* GWModelType.swift */; };
 		28E51C1D21CB6F7100D4A6F4 /* GWModelProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E51C1921CB6F7100D4A6F4 /* GWModelProperty.swift */; };
 		28E51C1E21CB6F7100D4A6F4 /* GWUnsafePointer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E51C1A21CB6F7100D4A6F4 /* GWUnsafePointer.swift */; };
@@ -19,6 +23,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2810233E22E1B87400849D0D /* ModelObject.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ModelObject.json; sourceTree = "<group>"; };
+		2810233F22E1B87400849D0D /* test_json.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = test_json.json; sourceTree = "<group>"; };
+		2810234022E1B87500849D0D /* test_json2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = test_json2.json; sourceTree = "<group>"; };
+		2810234422E1B8E500849D0D /* ModelTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTest.swift; sourceTree = "<group>"; };
 		28E51C1821CB6F7100D4A6F4 /* GWModelType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GWModelType.swift; sourceTree = "<group>"; };
 		28E51C1921CB6F7100D4A6F4 /* GWModelProperty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GWModelProperty.swift; sourceTree = "<group>"; };
 		28E51C1A21CB6F7100D4A6F4 /* GWUnsafePointer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GWUnsafePointer.swift; sourceTree = "<group>"; };
@@ -76,6 +84,10 @@
 				28E51C1721CB6F7100D4A6F4 /* GW_ModelKit */,
 				28F5DFB321C49D6300D042A3 /* AppDelegate.swift */,
 				28F5DFB521C49D6300D042A3 /* ViewController.swift */,
+				2810234422E1B8E500849D0D /* ModelTest.swift */,
+				2810233E22E1B87400849D0D /* ModelObject.json */,
+				2810233F22E1B87400849D0D /* test_json.json */,
+				2810234022E1B87500849D0D /* test_json2.json */,
 				28F5DFB721C49D6300D042A3 /* Main.storyboard */,
 				28F5DFBA21C49D6400D042A3 /* Assets.xcassets */,
 				28F5DFBC21C49D6400D042A3 /* LaunchScreen.storyboard */,
@@ -142,6 +154,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2810234322E1B87500849D0D /* test_json2.json in Resources */,
+				2810234122E1B87500849D0D /* ModelObject.json in Resources */,
+				2810234222E1B87500849D0D /* test_json.json in Resources */,
 				28F5DFBE21C49D6400D042A3 /* LaunchScreen.storyboard in Resources */,
 				28F5DFBB21C49D6400D042A3 /* Assets.xcassets in Resources */,
 				28F5DFB921C49D6300D042A3 /* Main.storyboard in Resources */,
@@ -159,6 +174,7 @@
 				28F5DFB621C49D6300D042A3 /* ViewController.swift in Sources */,
 				28E51C1F21CB6F7100D4A6F4 /* GWModelKit.swift in Sources */,
 				28E51C1E21CB6F7100D4A6F4 /* GWUnsafePointer.swift in Sources */,
+				2810234522E1B8E500849D0D /* ModelTest.swift in Sources */,
 				28E51C1C21CB6F7100D4A6F4 /* GWModelType.swift in Sources */,
 				28F5DFB421C49D6300D042A3 /* AppDelegate.swift in Sources */,
 			);
