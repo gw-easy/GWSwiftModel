@@ -12,9 +12,47 @@ class ModelTest: NSObject {
 
 }
 
+protocol proTest:GW_ModelAndJson {
+
+}
+
+class proTest1: proTest {
+    var Id: String?
+    required init() {
+        
+    }
+}
+
+class proTest2: proTest {
+    var ParentId: String?
+    required init() {
+        
+    }
+}
+
+struct proTest3 : proTest {
+    var Title: String?
+}
+
+class Test_model3<T:proTest>: proTest {
+    var Process: NSNumber?
+    var LectureNotesInfo: Int?
+    var Id: String?
+    var Title: String?
+    var ParentId: String?
+    var ClassHoursInfo: String?
+    var pBuyInfo: String?
+    var MP4Url: String?
+    var Children: [T]?
+    required init() {
+        
+    }
+}
+
 class BaseM: GW_ModelAndJson {
     var baseM: String?
     var baseM_float: Float?
+    var Id: String?
     required init() {
         
     }
@@ -24,6 +62,7 @@ class baseMM: BaseM {
     var baseMM: String?
     var baseMM_float: Float?
     var c_str: u_char?
+    var ParentId: String?
     required init() {
         
     }

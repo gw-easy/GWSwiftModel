@@ -11,6 +11,24 @@ import Foundation
 //typealias 替换名称
 typealias GWTYPE = Int8;
 
+//从swift源码copy来
+enum GWFieldDescriptorKind : UInt16 {
+    case Struct = 0
+    case Class
+    case Enum
+    case MultiPayloadEnum
+    case `Protocol`
+    case ClassProtocol
+    case ObjCProtocol
+    case ObjCClass
+}
+
+extension UnsafePointer {
+    init<T>(_ pointer: UnsafePointer<T>) {
+        self = UnsafeRawPointer(pointer).assumingMemoryBound(to: Pointee.self)
+    }
+}
+
 public protocol GW_Pointer{
     
 }
@@ -104,12 +122,11 @@ protocol GW_PointerType:Equatable {
 }
 
 extension GW_PointerType{
-    init<T>(pointer: UnsafePointer<T>) {
+    init<T>(pointerUn: UnsafePointer<T>) {
         func cast<T, U>(_ value: T) -> U {
             return unsafeBitCast(value, to: U.self);
         }
-//        typealias PointT = T
-        self = cast(UnsafePointer<T>(pointer));
+        self = cast(UnsafePointer<PointT>(pointerUn));
     }
 }
 
@@ -119,22 +136,76 @@ func == <T: GW_PointerType>(lhs: T, rhs: T) -> Bool {
 
 
 
+struct GWFieldDescriptor: GW_PointerType {
+    
+    var pointerUn: UnsafePointer<GW_FieldDescriptor>
+    
+    var fieldRecordSize: Int {
+        return Int(pointerUn.pointee.fieldRecordSize)
+    }
+    
+    var numFields: Int {
+        return Int(pointerUn.pointee.numFields)
+    }
+    
+    var fieldRecords: [GWFieldRecord] {
+        return (0..<numFields).map({ (i) -> GWFieldRecord in
+            return GWFieldRecord(pointerUn: UnsafePointer<GW_FieldRecord>(pointerUn + 1) + i)
+        })
+    }
+}
+
+struct GW_FieldDescriptor {
+    var mangledTypeNameOffset: Int32
+    var superClassOffset: Int32
+    var fieldDescriptorKind: GWFieldDescriptorKind
+    var fieldRecordSize: Int16
+    var numFields: Int32
+}
+
+struct GWFieldRecord: GW_PointerType {
+    
+    var pointerUn: UnsafePointer<GW_FieldRecord>
+    
+    var fieldRecordFlags: Int {
+        return Int(pointerUn.pointee.fieldRecordFlags)
+    }
+    
+    var mangledTypeName: UnsafePointer<UInt8>? {
+        let address = Int(bitPattern: pointerUn) + 1 * 4
+        let offset = Int(pointerUn.pointee.mangledTypeNameOffset)
+        let cString = UnsafePointer<UInt8>(bitPattern: address + offset)
+        return cString
+    }
+    
+    var fieldName: String {
+        let address = Int(bitPattern: pointerUn) + 2 * 4
+        let offset = Int(pointerUn.pointee.fieldNameOffset)
+        if let cString = UnsafePointer<UInt8>(bitPattern: address + offset) {
+            return String(cString: cString)
+        }
+        return ""
+    }
+}
+
+struct GW_FieldRecord {
+    var fieldRecordFlags: Int32
+    var mangledTypeNameOffset: Int32
+    var fieldNameOffset: Int32
+}
+
 // MARK: MetadataType
 protocol GW_MetadataType : GW_PointerType {
-//    var pointerUn: UnsafePointer<Int>{ get set }
     static var kind: Metadata.Kind? { get }
 }
 
 extension GW_MetadataType {
     var kind: Metadata.Kind{
-        let pointerUn:UnsafePointer<Int>
-            = self.pointerUn.withMemoryRebound(to: Int.self, capacity: 1, { a_pt_uint8 in
-            return a_pt_uint8
-        })
-        return Metadata.Kind(flag: pointerUn.pointee)
+        let kP:Int = UnsafePointer<Int>(pointerUn).pointee
+        return Metadata.Kind(flag: kP)
     }
     init?(anyType: Any.Type) {
-        self.init(pointer: unsafeBitCast(anyType, to: UnsafePointer<Int>.self))
+        self.init(pointerUn: unsafeBitCast(anyType, to: UnsafePointer<Int>.self))
         if let kind = type(of: self).kind, kind != self.kind {
             return nil;
         }
@@ -143,15 +214,16 @@ extension GW_MetadataType {
 
 // MARK: Metadata
 struct Metadata : GW_MetadataType {
-//    typealias pointT = Int;
     var pointerUn: UnsafePointer<Int>
     init(typeT: Any.Type) {
-        self.init(pointer: unsafeBitCast(typeT, to: UnsafePointer<Int>.self))
+        self.init(pointerUn: unsafeBitCast(typeT, to: UnsafePointer<Int>.self))
     }
     
     
 }
-
+let MetadataKindIsNonHeap = 0x200
+let MetadataKindIsRuntimePrivate = 0x100
+let MetadataKindIsNonType = 0x400
 extension Metadata {
     static let kind: Kind? = nil
     
@@ -160,33 +232,33 @@ extension Metadata {
         case `enum`
         case optional
         case opaque
+        case foreignClass
         case tuple
         case function
         case existential
         case metatype
         case objCClassWrapper
         case existentialMetatype
-        case foreignClass
         case heapLocalVariable
         case heapGenericLocalVariable
         case errorObject
-        case `class`
+        case `class` // The kind only valid for non-class metadata
         init(flag: Int) {
             switch flag {
-            case 1: self = .struct
-            case 2: self = .enum
-            case 3: self = .optional
-            case 8: self = .opaque
-            case 9: self = .tuple
-            case 10: self = .function
-            case 12: self = .existential
-            case 13: self = .metatype
-            case 14: self = .objCClassWrapper
-            case 15: self = .existentialMetatype
-            case 16: self = .foreignClass
-            case 64: self = .heapLocalVariable
-            case 65: self = .heapGenericLocalVariable
-            case 128: self = .errorObject
+            case (0 | MetadataKindIsNonHeap): self = .struct
+            case (1 | MetadataKindIsNonHeap): self = .enum
+            case (2 | MetadataKindIsNonHeap): self = .optional
+            case (3 | MetadataKindIsNonHeap): self = .foreignClass
+            case (0 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .opaque
+            case (1 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .tuple
+            case (2 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .function
+            case (3 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .existential
+            case (4 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .metatype
+            case (5 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .objCClassWrapper
+            case (6 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .existentialMetatype
+            case (0 | MetadataKindIsNonType): self = .heapLocalVariable
+            case (0 | MetadataKindIsNonType | MetadataKindIsRuntimePrivate): self = .heapGenericLocalVariable
+            case (1 | MetadataKindIsNonType | MetadataKindIsRuntimePrivate): self = .errorObject
             default: self = .class
             }
         }
@@ -197,14 +269,12 @@ extension Metadata {
 extension Metadata {
     struct Class : GW_ContextDescriptorType {
         
-//        typealias pointT = _Metadata._Class;
-        
         static let kind: Kind? = .class
         var pointerUn: UnsafePointer<_Metadata._Class>;
         
         var isSwiftClass: Bool {
             get {
-                let lowbit = self.pointerUn.pointee.databits & 1
+                let lowbit = self.pointerUn.pointee.databits & 3
                 return lowbit == 1
             }
         }
@@ -225,38 +295,51 @@ extension Metadata {
             }
             
             // ignore objc-runtime layer
-            guard let metaclass = Metadata.Class(anyType: superclass), metaclass.isSwiftClass else {
+            guard let metaclass = Metadata.Class(anyType: superclass) else {
                 return nil
             }
             
             return metaclass
         }
         
+        var vTableSize: Int {
+            // memory size after ivar destroyer
+            return Int(pointerUn.pointee.classObjectSize - pointerUn.pointee.classObjectAddressPoint) - (contextDescriptorOffsetLocation + 2) * MemoryLayout<Int>.size
+        }
+        
+        var genericArgumentVector: UnsafeRawPointer? {
+            let pointer = UnsafePointer<Int>(self.pointerUn)
+            var superVTableSize = 0
+            if let _superclass = self.superclass {
+                superVTableSize = _superclass.vTableSize / MemoryLayout<Int>.size
+            }
+            let base = pointer.advanced(by: contextDescriptorOffsetLocation + 2 + superVTableSize)
+            if base.pointee == 0 {
+                return nil
+            }
+            return UnsafeRawPointer(base)
+        }
+        
         func _propertyDescriptionsAndStartPoint() -> ([GW_Property.Description], Int32?)? {
             let instanceStart = pointerUn.pointee.class_rw_t()?.pointee.class_ro_t()?.pointee.instanceStart
             var result: [GW_Property.Description] = []
-            let selfType = unsafeBitCast(self.pointerUn, to: Any.Type.self)
             if let offsets = self.fieldOffsets {
                 class NameAndType {
                     var name: String?
                     var type: Any.Type?
                 }
                 for i in 0..<self.numberOfFields {
-                    var nameAndType = NameAndType()
-                    _getFieldAt(selfType, i, { (name, type, nameAndTypePtr) in
-                        let name = String(cString: name)
-                        let type = unsafeBitCast(type, to: Any.Type.self)
-                        nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee.name = name
-                        nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee.type = type
-                    }, &nameAndType)
-                    if let name = nameAndType.name, let type = nameAndType.type {
-                        result.append(GW_Property.Description(key: name, type: type, offset: offsets[i]))
+                    if let name = self.reflectionFieldDescriptor?.fieldRecords[i].fieldName,
+                        let cMangledTypeName = self.reflectionFieldDescriptor?.fieldRecords[i].mangledTypeName,
+                        let fieldType = _getTypeByMangledNameInContext(cMangledTypeName, 256, genericContext: self.contextDescriptorPointer, genericArguments: self.genericArgumentVector)
+                    {
+                        result.append(GW_Property.Description(key: name, type: fieldType, offset: offsets[i]))
                     }
                 }
             }
             
             if let superclass = superclass,
-                String(describing: unsafeBitCast(superclass.pointerUn, to: Any.Type.self)) != "SwiftObject",  // ignore the root swift object
+                String(describing: unsafeBitCast(superclass.pointerUn, to: Any.Type.self)) != "SwiftObject",  
                 let superclassProperties = superclass._propertyDescriptionsAndStartPoint(),
                 superclassProperties.0.count > 0 {
                 
@@ -283,11 +366,24 @@ extension Metadata {
 // MARK: Metadata + Struct
 extension Metadata {
     struct Struct : GW_ContextDescriptorType {
-//        typealias pointT = _Metadata._Struct;
         static let kind: Kind? = .struct
         var pointerUn: UnsafePointer<_Metadata._Struct>
         var contextDescriptorOffsetLocation: Int {
             return 1
+        }
+        
+        var genericArgumentOffsetLocation: Int {
+            return 2
+        }
+        
+        var genericArgumentVector: UnsafeRawPointer? {
+            
+            let pointer = UnsafePointer<Int>(self.pointerUn)
+            let base = pointer.advanced(by: genericArgumentOffsetLocation)
+            if base.pointee == 0 {
+                return nil
+            }
+            return UnsafeRawPointer(base)
         }
         
         func propertyDescriptions() -> [GW_Property.Description]? {
@@ -295,22 +391,15 @@ extension Metadata {
                 return []
             }
             var result: [GW_Property.Description] = []
-            let selfType = unsafeBitCast(self.pointerUn, to: Any.Type.self)
             class NameAndType {
                 var name: String?
                 var type: Any.Type?
             }
             for i in 0..<self.numberOfFields {
-                var nameAndType = NameAndType()
-                _getFieldAt(selfType, i, { (name, type, nameAndTypePtr) in
-                    let name = String(cString: name)
-                    let type = unsafeBitCast(type, to: Any.Type.self)
-                    let nameAndType = nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee
-                    nameAndType.name = name
-                    nameAndType.type = type
-                }, &nameAndType)
-                if let name = nameAndType.name, let type = nameAndType.type {
-                    result.append(GW_Property.Description(key: name, type: type, offset: fieldOffsets[i]))
+                if let name = self.reflectionFieldDescriptor?.fieldRecords[i].fieldName,
+                let cMangledTypeName = self.reflectionFieldDescriptor?.fieldRecords[i].mangledTypeName,
+                let fieldType = _getTypeByMangledNameInContext(cMangledTypeName, 256, genericContext: self.contextDescriptorPointer, genericArguments: self.genericArgumentVector){
+                    result.append(GW_Property.Description(key: name, type: fieldType, offset: fieldOffsets[i]))
                 }
             }
             return result
@@ -322,7 +411,6 @@ extension Metadata {
 extension Metadata {
     struct ObjcClassWrapper: GW_ContextDescriptorType {
         
-//        typealias pointT = _Metadata._ObjcClassWrapper;
         static let kind: Kind? = .objCClassWrapper
         var pointerUn: UnsafePointer<_Metadata._ObjcClassWrapper>
         var contextDescriptorOffsetLocation: Int {
@@ -364,8 +452,16 @@ extension _Metadata {
         var reserveword1: Int
         var reserveword2: Int
         var databits: UInt
-        // other fields we don't care
-        
+        var rodataPointer: UInt
+        var classFlags: UInt32
+        var instanceAddressPoint: UInt32
+        var instanceSize: UInt32
+        var instanceAlignmentMask: UInt16
+        var runtimeReservedField: UInt16
+        var classObjectSize: UInt32
+        var classObjectAddressPoint: UInt32
+        var nominalTypeDescriptor: Int
+        var ivarDestroyer: Int
         func class_rw_t() -> UnsafePointer<_class_rw_t>? {
             if MemoryLayout<Int>.size == MemoryLayout<Int64>.size {
                 let fast_data_mask: UInt64 = 0x00007ffffffffff8
@@ -393,25 +489,32 @@ extension _Metadata {
     }
 }
 
-protocol ContextDescriptorProtocol {
+protocol GWContextDescriptorProtocol {
+    var mangledName: Int { get }
     var numberOfFields: Int { get }
     var fieldOffsetVector: Int { get }
+    var reflectionFieldDescriptor: Int { get }
 }
 
 protocol GW_ContextDescriptorType : GW_MetadataType {
     var contextDescriptorOffsetLocation: Int { get }
 }
 
-protocol _ContextDescriptorProtocol {
-    var mangledName: Int32 { get }
+protocol GW_ContextDescriptorProtocol {
+    var mangledNameOffset: Int32 { get }
     var numberOfFields: Int32 { get }
     var fieldOffsetVector: Int32 { get }
     var fieldTypesAccessor: Int32 { get }
+    var reflectionFieldDescriptor: Int32 { get }
 }
 
-struct ContextDescriptor<T: _ContextDescriptorProtocol>: ContextDescriptorProtocol, GW_PointerType {
+struct ContextDescriptor<T: GW_ContextDescriptorProtocol>: GWContextDescriptorProtocol, GW_PointerType {
     
     var pointerUn: UnsafePointer<T>
+    
+    var mangledName: Int {
+        return Int(pointerUn.pointee.mangledNameOffset)
+    }
     
     var numberOfFields: Int {
         return Int(pointerUn.pointee.numberOfFields)
@@ -420,22 +523,32 @@ struct ContextDescriptor<T: _ContextDescriptorProtocol>: ContextDescriptorProtoc
     var fieldOffsetVector: Int {
         return Int(pointerUn.pointee.fieldOffsetVector)
     }
+    
+    var fieldTypesAccessor: Int {
+        return Int(pointerUn.pointee.fieldTypesAccessor)
+    }
+    
+    var reflectionFieldDescriptor: Int {
+        return Int(pointerUn.pointee.reflectionFieldDescriptor)
+    }
 }
 
-struct _StructContextDescriptor: _ContextDescriptorProtocol {
+struct GW_StructContextDescriptor: GW_ContextDescriptorProtocol {
     var flags: Int32
     var parent: Int32
-    var mangledName: Int32
+    var mangledNameOffset: Int32
     var fieldTypesAccessor: Int32
+    var reflectionFieldDescriptor: Int32
     var numberOfFields: Int32
     var fieldOffsetVector: Int32
 }
 
-struct _ClassContextDescriptor: _ContextDescriptorProtocol {
+struct GW_ClassContextDescriptor: GW_ContextDescriptorProtocol {
     var flags: Int32
     var parent: Int32
-    var mangledName: Int32
+    var mangledNameOffset: Int32
     var fieldTypesAccessor: Int32
+    var reflectionFieldDescriptor: Int32
     var superClsRef: Int32
     var reservedWord1: Int32
     var reservedWord2: Int32
@@ -443,6 +556,8 @@ struct _ClassContextDescriptor: _ContextDescriptorProtocol {
     var numberOfFields: Int32
     var fieldOffsetVector: Int32
 }
+
+
 
 func relativePointer<T, U, V>(base: UnsafePointer<T>, offset: U) -> UnsafePointer<V> where U : FixedWidthInteger {
     return UnsafeRawPointer(base).advanced(by: Int(integer: offset)).assumingMemoryBound(to: V.self)
@@ -460,22 +575,41 @@ extension Int {
     }
 }
 
+
 extension GW_ContextDescriptorType {
     
-    var contextDescriptor: ContextDescriptorProtocol? {
+    var contextDescriptor: GWContextDescriptorProtocol? {
         
-        let pointer:UnsafePointer<Int> = pointerUn.withMemoryRebound(to: Int.self, capacity: 1, { a_pt_uint8 in
-            return a_pt_uint8
-        })
+        let pointer = UnsafePointer<Int>(self.pointerUn)
         let base = pointer.advanced(by: contextDescriptorOffsetLocation)
         if base.pointee == 0 {
             return nil
         }
         if self.kind == .class {
-            return ContextDescriptor<_ClassContextDescriptor>(pointerUn: relativePointer(base: base, offset: base.pointee - Int(bitPattern: base)))
+            return ContextDescriptor<GW_ClassContextDescriptor>(pointerUn: relativePointer(base: base, offset: base.pointee - Int(bitPattern: base)))
         } else {
-            return ContextDescriptor<_StructContextDescriptor>(pointerUn: relativePointer(base: base, offset: base.pointee - Int(bitPattern: base)))
+            return ContextDescriptor<GW_StructContextDescriptor>(pointerUn: relativePointer(base: base, offset: base.pointee - Int(bitPattern: base)))
         }
+    }
+    
+    var contextDescriptorPointer: UnsafeRawPointer? {
+        let pointerClass = UnsafePointer<Int>(self.pointerUn)
+        let base = pointerClass.advanced(by: contextDescriptorOffsetLocation)
+        if base.pointee == 0 {
+            return nil
+        }
+        return UnsafeRawPointer(bitPattern: base.pointee)
+    }
+    
+    var mangledName: String {
+        let pointerClass = UnsafePointer<Int>(self.pointerUn)
+        let base = pointerClass.advanced(by: contextDescriptorOffsetLocation)
+        let mangledNameAddress = base.pointee + 2 * 4 // 2 properties in front
+        if let offset = contextDescriptor?.mangledName,
+            let cString = UnsafePointer<UInt8>(bitPattern: mangledNameAddress + offset) {
+            return String(cString: cString)
+        }
+        return ""
     }
     
     var numberOfFields: Int {
@@ -492,30 +626,42 @@ extension GW_ContextDescriptorType {
         }
         if self.kind == .class {
             return (0..<contextDescriptor.numberOfFields).map {
-                let pointerClass:UnsafePointer<Int> = pointerUn.withMemoryRebound(to: Int.self, capacity: 1, { a_pt_uint8 in
-                    return a_pt_uint8
-                })
+                let pointerClass = UnsafePointer<Int>(pointerUn)
                 return pointerClass[vectorOffset + $0]
             }
         } else {
             return (0..<contextDescriptor.numberOfFields).map {
-                let pointerStrc:UnsafePointer<Int32> = pointerUn.withMemoryRebound(to: Int32.self, capacity: 1, { a_pt_uint8 in
-                    return a_pt_uint8
-                })
+                let pointerStrc = UnsafePointer<Int32>(pointerUn)
                 return Int(pointerStrc[vectorOffset * (is64BitPlatform ? 2 : 1) + $0])
             }
         }
     }
+    
+    var reflectionFieldDescriptor: GWFieldDescriptor? {
+        guard let contextDescriptor = self.contextDescriptor else {
+            return nil
+        }
+        let pointerClass = UnsafePointer<Int>(pointerUn)
+        let base = pointerClass.advanced(by: contextDescriptorOffsetLocation)
+        let offset = contextDescriptor.reflectionFieldDescriptor
+        let address = base.pointee + 4 * 4 // (4 properties in front) * (sizeof Int32)
+        guard let fieldDescriptorPtr = UnsafePointer<GW_FieldDescriptor>(bitPattern: address + offset) else {
+            return nil
+        }
+        return GWFieldDescriptor(pointerUn: fieldDescriptorPtr)
+    }
 }
+
+
 
 var is64BitPlatform: Bool {
     return MemoryLayout<Int>.size == MemoryLayout<Int64>.size
 }
 
-@_silgen_name("swift_getFieldAt")
-func _getFieldAt(
-    _ type: Any.Type,
-    _ index: Int,
-    _ callback: @convention(c) (UnsafePointer<CChar>, UnsafeRawPointer, UnsafeMutableRawPointer) -> Void,
-    _ ctx: UnsafeMutableRawPointer
-)
+@_silgen_name("swift_getTypeByMangledNameInContext")
+public func _getTypeByMangledNameInContext(
+    _ name: UnsafePointer<UInt8>,
+    _ nameLength: UInt,
+    genericContext: UnsafeRawPointer?,
+    genericArguments: UnsafeRawPointer?)
+    -> Any.Type?

@@ -23,7 +23,7 @@ struct Teacher: GW_ModelAndJson {
     var name: String?
     var age: Int?
     var height: Int?
-    var gender: Gender?
+//    var gender: Gender?
 }
 
 struct Subject: GW_ModelAndJson {
@@ -41,28 +41,80 @@ class Student: GW_ModelAndJson {
     var height: Int?
     var gender: Gender?
     var className: String?
-    var teacher: Teacher = Teacher()
+    var teacher: Teacher?
     var subjects: [Subject]?
     var seat: String?
     
     required init() {}
 }
+
+
 class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
 //        self.serialization()
-        self.addModelObject()
+//        self.addModelObject()
 //        self.deserialization()
+        
+//        self.addTest_json()
+        self.addTest_json2()
+    }
+
+    
+    func addTest_json2() {
+        let path = Bundle.main.path(forResource: "test_json2", ofType: "json")
+        
+        let jsonStr = try! String.init(contentsOfFile:path! , encoding: String.Encoding.utf8)
+        if let tM = Test_model3<proTest3>.jsonToModel(json: jsonStr, designatedPath:"Data") as? [Test_model3<proTest3>]{
+//            printSubID(subA: tM)
+            for sub in tM{
+                printAction(obj: sub)
+                printAction(obj: sub.Children)
+                if let arr = sub.Children , arr.count>0{
+                    for child in sub.Children ?? []{
+                        printAction(obj: "child.Title = \(String(describing: child.Title))")
+                    }
+                }
+            }
+        }
+        
+        if let tM = Test_model3<proTest2>.jsonToModel(json: jsonStr, designatedPath:"Data") as? [Test_model3<proTest2>]{
+//            printSubID(subA: tM)
+            for sub in tM{
+                printAction(obj: sub)
+                printAction(obj: sub.Children)
+                if let arr = sub.Children , arr.count>0{
+                    for child in sub.Children ?? []{
+                        printAction(obj: "child.ParentId = \(String(describing: child.ParentId))")
+                    }
+                }
+            }
+        }
+        
+        if let tM = Test_model3<proTest1>.jsonToModel(json: jsonStr, designatedPath:"Data") as? [Test_model3<proTest1>]{
+//            printSubID(subA: tM)
+            for sub in tM{
+                printAction(obj: sub)
+                printAction(obj: sub.Children)
+                if let arr = sub.Children , arr.count>0{
+                    for child in sub.Children ?? []{
+                        printAction(obj: "child.Id = \(String(describing: child.Id))")
+                    }
+                }
+            }
+        }
     }
     
-    func test_json() {
+    func addTest_json() {
+        let path = Bundle.main.path(forResource: "test_json", ofType: "json")
         
-    }
-    
-    func test_json2() {
+        let jsonStr = try! String.init(contentsOfFile:path! , encoding: String.Encoding.utf8)
         
+        if let tM = TestModel.jsonToModel(json: jsonStr) as? TestModel{
+            printAction(obj: tM)
+        }
     }
     
     func addModelObject() {
@@ -91,7 +143,7 @@ class ViewController: UIViewController {
     }
     
     func printAction(obj:Any?) {
-        print(obj ?? "")
+        print(obj ?? "nil")
     }
     
     func serialization() {
@@ -114,7 +166,7 @@ class ViewController: UIViewController {
         let jsonString = "{\"id\":\"77544\",\"json_name\":\"Tom Li\",\"age\":18,\"grade\":2,\"height\":180,\"gender\":\"Female\",\"className\":\"A\",\"teacher\":{\"name\":\"Lucy He\",\"age\":28,\"height\":172,\"gender\":\"Female\",},\"subjects\":[{\"name\":\"math\",\"id\":18000324583,\"credit\":4,\"lessonPeriod\":48},{\"name\":\"computer\",\"id\":18000324584,\"credit\":8,\"lessonPeriod\":64}],\"seat\":\"4-3-23\"}"
 
 //            Student.json_To_Model(json: jsonString, designatedPath: nil)
-        if let student = Student.jsonToModel(json: jsonString) as? GW_ModelAndJson{
+        if let student = Student.jsonToModel(json: jsonString) as? Student{
             print(student.modelToJson() ?? "");
         }
         let arrayJSONString = "[{\"id\":\"77544\",\"json_name\":\"Tom Li\",\"age\":18,\"grade\":2,\"height\":180,\"gender\":\"Female\",\"className\":\"A\",\"teacher\":{\"name\":\"Lucy He\",\"age\":28,\"height\":172,\"gender\":\"Female\",},\"subjects\":[{\"name\":\"math\",\"id\":18000324583,\"credit\":4,\"lessonPeriod\":48},{\"name\":\"computer\",\"id\":18000324584,\"credit\":8,\"lessonPeriod\":64}],\"seat\":\"4-3-23\"}]"

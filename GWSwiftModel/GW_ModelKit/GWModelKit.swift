@@ -8,22 +8,20 @@
 
 import Foundation
 
-
 //GW_ModelAndJson协议
 public protocol GW_ModelAndJson : GWExpendModelType{
-    
 }
 
 //model->json
 public extension GW_ModelAndJson{
-    public func modelToJson() -> [String: Any]? {
+    func modelToJson() -> [String: Any]? {
         if let dict = Self._serializeAny(object: self) as? [String: Any] {
             return dict
         }
         return nil
     }
     
-    public func modelToJsonString(prettyPrint: Bool = false) -> String? {
+    func modelToJsonString(prettyPrint: Bool = false) -> String? {
         if let anyObject = self.modelToJson() {
             if JSONSerialization.isValidJSONObject(anyObject) {
                 do {
@@ -46,12 +44,11 @@ public extension GW_ModelAndJson{
 }
 
 public extension Collection where Iterator.Element: GW_ModelAndJson {
-    public func modelToJson() -> [[String: Any]?] {
+    func modelToJson() -> [[String: Any]?] {
         return self.map{ $0.modelToJson() }
     }
     
-    public func toJSONString(prettyPrint: Bool = false) -> String? {
-        
+    func toJSONString(prettyPrint: Bool = false) -> String? {
         let anyArray = self.modelToJson()
         if JSONSerialization.isValidJSONObject(anyArray) {
             do {
@@ -72,16 +69,30 @@ public extension Collection where Iterator.Element: GW_ModelAndJson {
     }
 }
 
-//MARK: model->json
+//MARK: json->model
 public extension GW_ModelAndJson{
-    public static func jsonToModel(json:Any?,designatedPath: String? = nil) -> Any?{
+    static func jsonToModel(json:Any?,designatedPath: String? = nil) -> Any?{
         switch json {
         case let ar as String:
-            return JSONDeserializer<Self>.jsonToModelFrom(json: ar, designatedPath: designatedPath)
+            do{
+                let jsonObject = try JSONSerialization.jsonObject(with: ar.data(using: String.Encoding.utf8)!, options: .allowFragments)
+                return Self.jsonToModel(json: jsonObject,designatedPath: designatedPath)
+            }catch let error{
+                print(error)
+                return nil;
+            }
+        case let ar as Data:
+            do{
+                let jsonObject = try JSONSerialization.jsonObject(with: ar, options: .allowFragments)
+                return Self.jsonToModel(json: jsonObject,designatedPath: designatedPath)
+            }catch let error{
+                print(error)
+                return nil;
+            }
         case let ar as NSArray:
-            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar)
+            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar,designatedPath: designatedPath)
         case let ar as [Any]:
-            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar)
+            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar,designatedPath: designatedPath)
         case let ar as NSDictionary:
             return JSONDeserializer<Self>.jsonToModelFrom(dict: ar, designatedPath: designatedPath)
         case let ar as [String:Any]:
@@ -94,36 +105,18 @@ public extension GW_ModelAndJson{
 
 public class JSONDeserializer<Obj: GW_ModelAndJson> {
     
-    public static func jsonToModelFrom(dict: NSDictionary?, designatedPath: String? = nil) -> Obj? {
+    public static func jsonToModelFrom(dict: NSDictionary?, designatedPath: String? = nil) -> Any? {
         return jsonToModelFrom(dict: dict as? [String: Any], designatedPath: designatedPath)
     }
     
-    public static func jsonToModelFrom(dict: [String: Any]?, designatedPath: String? = nil) -> Obj? {
-        var targetDict = dict
+    public static func jsonToModelFrom(dict: [String: Any]?, designatedPath: String? = nil) -> Any? {
         if let path = designatedPath {
-            targetDict = getInnerObject(inside: targetDict, by: path) as? [String: Any]
+            let target = dict;
+            let subJct = getInnerObject(inside: target, by: path)
+            return Obj.jsonToModel(json: subJct, designatedPath: nil)
         }
-        if let _dict = targetDict {
+        if let _dict = dict {
             return Obj.strJudgeType(dict: _dict) as? Obj
-        }
-        return nil
-    }
-    
-    public static func jsonToModelFrom(json: String?, designatedPath: String? = nil) -> Any? {
-        guard let _json = json else {
-            return nil
-        }
-        do {
-            let jsonObject = try JSONSerialization.jsonObject(with: _json.data(using: String.Encoding.utf8)!, options: .allowFragments)
-            if let jsonDict = jsonObject as? NSDictionary {
-                return self.jsonToModelFrom(dict: jsonDict, designatedPath: designatedPath)
-            }else if let jsonArray = getInnerObject(inside: jsonObject, by: designatedPath) as? [Any] {
-                return jsonArray.map({ (item) -> Obj? in
-                    return self.jsonToModelFrom(dict: item as? [String: Any])
-                })
-            }
-        } catch let error {
-            print(error)
         }
         return nil
     }
@@ -138,8 +131,6 @@ public class JSONDeserializer<Obj: GW_ModelAndJson> {
         }
     }
     
-    /// Finds the internal JSON field in `json` as the `designatedPath` specified, and use it to reassign an exist model
-    /// `designatedPath` is a string like `result.data.orderInfo`, which each element split by `.` represents key of each layer, or nil
     public static func update(object: inout Obj, from json: String?, designatedPath: String? = nil) {
         guard let _json = json else {
             return
@@ -154,19 +145,16 @@ public class JSONDeserializer<Obj: GW_ModelAndJson> {
         }
     }
     
-    
-    /// mapping raw array to Models array
-    public static func jsonToModelArrayFrom(array: NSArray?) -> [Obj?]? {
-        return jsonToModelArrayFrom(array: array as? [Any])
+    public static func jsonToModelArrayFrom(array: NSArray?,designatedPath: String? = nil) -> [Any?]? {
+        return jsonToModelArrayFrom(array: array as? [Any] , designatedPath: designatedPath)
     }
     
-    /// mapping raw array to Models array
-    public static func jsonToModelArrayFrom(array: [Any]?) -> [Obj?]? {
+    public static func jsonToModelArrayFrom(array: [Any]?,designatedPath: String? = nil) -> [Any?]? {
         guard let _arr = array else {
             return nil
         }
-        return _arr.map({ (item) -> Obj? in
-            return self.jsonToModelFrom(dict: item as? NSDictionary)
+        return _arr.map({ (item) -> Any? in
+            return self.jsonToModelFrom(dict: item as? [String: Any] ,designatedPath: designatedPath)
         })
     }
 }

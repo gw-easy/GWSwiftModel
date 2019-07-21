@@ -43,6 +43,15 @@ func extensions(of type: Any.Type) -> GW_AnyExtensions.Type {
     return extensions
 }
 
+func extensions(of value: Any) -> GW_AnyExtensions {
+    struct Extensions : GW_AnyExtensions {}
+    var extensions: GW_AnyExtensions = Extensions()
+    withUnsafePointer(to: &extensions) { pointer in
+        UnsafeMutableRawPointer(mutating: pointer).assumingMemoryBound(to: Any.self).pointee = value
+    }
+    return extensions
+}
+
 //MARK: 属性详情
 struct PropertyInfo {
     let key: String
