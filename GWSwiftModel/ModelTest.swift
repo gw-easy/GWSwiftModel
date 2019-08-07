@@ -9,11 +9,11 @@
 import UIKit
 
 class ModelTest: NSObject {
-
+    
 }
 
 protocol proTest:GW_ModelAndJson {
-
+    
 }
 
 class proTest1: proTest {
@@ -167,3 +167,4 @@ class TestModel: GW_ModelAndJson {
         
     }
 }
+

@@ -37,12 +37,14 @@ class Student: GW_ModelAndJson {
     var id: String?
     var name: String?
     var age: Int?
+    var json_name :String?
+    
     var grade: Grade = .One
     var height: Int?
     var gender: Gender?
     var className: String?
-    var teacher: Teacher?
-    var subjects: [Subject]?
+//    var teacher: Teacher?
+//    var subjects: [Subject]?
     var seat: String?
     
     required init() {}
@@ -56,10 +58,10 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
 //        self.serialization()
 //        self.addModelObject()
-//        self.deserialization()
+        self.deserialization()
         
 //        self.addTest_json()
-        self.addTest_json2()
+//        self.addTest_json2()
     }
 
     
@@ -150,7 +152,7 @@ class ViewController: UIViewController {
         let student = Student()
         student.name = "gw"
         student.gender = .Female
-        student.subjects = [Subject(name: "gw_model", id: 1, credit: 23, lessonPeriod: 64), Subject(name: "English", id: 2, credit: 12, lessonPeriod: 32)]
+//        student.subjects = [Subject(name: "gw_model", id: 1, credit: 23, lessonPeriod: 64), Subject(name: "English", id: 2, credit: 12, lessonPeriod: 32)]
         
         
         print(student.modelToJson()!)
@@ -167,14 +169,16 @@ class ViewController: UIViewController {
 
 //            Student.json_To_Model(json: jsonString, designatedPath: nil)
         if let student = Student.jsonToModel(json: jsonString) as? Student{
+//            print("Student.jsonToModel");
             print(student.modelToJson() ?? "");
         }
-        let arrayJSONString = "[{\"id\":\"77544\",\"json_name\":\"Tom Li\",\"age\":18,\"grade\":2,\"height\":180,\"gender\":\"Female\",\"className\":\"A\",\"teacher\":{\"name\":\"Lucy He\",\"age\":28,\"height\":172,\"gender\":\"Female\",},\"subjects\":[{\"name\":\"math\",\"id\":18000324583,\"credit\":4,\"lessonPeriod\":48},{\"name\":\"computer\",\"id\":18000324584,\"credit\":8,\"lessonPeriod\":64}],\"seat\":\"4-3-23\"}]"
+//        let arrayJSONString = "[{\"id\":\"77544\",\"json_name\":\"Tom Li\",\"age\":18,\"grade\":2,\"height\":180,\"gender\":\"Female\",\"className\":\"A\",\"teacher\":{\"name\":\"Lucy He\",\"age\":28,\"height\":172,\"gender\":\"Female\",},\"subjects\":[{\"name\":\"math\",\"id\":18000324583,\"credit\":4,\"lessonPeriod\":48},{\"name\":\"computer\",\"id\":18000324584,\"credit\":8,\"lessonPeriod\":64}],\"seat\":\"4-3-23\"}]"
         
 //        Student.json_To_Model(json: arrayJSONString, designatedPath: nil)
-        if let students = Student.jsonToModel(json: arrayJSONString) as? [GW_ModelAndJson]{
-            print(students[0].modelToJson() ?? "");
-        }
+//        if let students = Student.jsonToModel(json: arrayJSONString) as? [GW_ModelAndJson]{
+//            print("[Student.jsonToModel]");
+////            print(students[0].modelToJson() ?? "");
+//        }
 //        if let students = [Student].jsonToModel(from: arrayJSONString) {
 //            print(students.count)
 //            print(students[0]!.modelToJson()!)

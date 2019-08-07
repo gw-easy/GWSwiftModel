@@ -23,10 +23,17 @@ extension GW_AnyExtensions{
     }
     
     public static func write(_ value: Any, to storage: UnsafeMutableRawPointer) {
-        guard let this = value as? Self else {
+        guard let wValue = value as? Self else {
             return
         }
-        storage.assumingMemoryBound(to: self).pointee = this
+        print("write + \(Self.self)")
+        print("value + \(value)")
+        print("storage + \(storage)")
+        print("wValue + \(wValue)")
+        let uPoint:UnsafeMutablePointer = storage.assumingMemoryBound(to: self)
+        print("uPoint + \(uPoint)")
+        uPoint.pointee = wValue
+        print("pointee + \(uPoint.pointee)")
     }
     
     public static func takeValue(from anyValue: Any) -> Self? {
