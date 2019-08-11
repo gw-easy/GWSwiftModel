@@ -100,12 +100,12 @@ extension GW_Pointer{
         return propertyList
     }
     
-    // memory size occupy by self object
+//    属性内存大小
     static func size() -> Int {
         return MemoryLayout<Self>.size
     }
     
-    // align
+//    属性对齐
     static func align() -> Int {
         return MemoryLayout<Self>.alignment
     }
@@ -156,7 +156,7 @@ struct GWFieldDescriptor: GW_PointerType {
 }
 
 struct GW_FieldDescriptor {
-    var mangledTypeNameOffset: Int32
+    var nameOffset: Int32
     var superClassOffset: Int32
     var fieldDescriptorKind: GWFieldDescriptorKind
     var fieldRecordSize: Int16
@@ -173,7 +173,7 @@ struct GWFieldRecord: GW_PointerType {
     
     var mangledTypeName: UnsafePointer<UInt8>? {
         let address = Int(bitPattern: pointerUn) + 1 * 4
-        let offset = Int(pointerUn.pointee.mangledTypeNameOffset)
+        let offset = Int(pointerUn.pointee.changeNameOffset)
         let cString = UnsafePointer<UInt8>(bitPattern: address + offset)
         return cString
     }
@@ -190,7 +190,7 @@ struct GWFieldRecord: GW_PointerType {
 
 struct GW_FieldRecord {
     var fieldRecordFlags: Int32
-    var mangledTypeNameOffset: Int32
+    var changeNameOffset: Int32
     var fieldNameOffset: Int32
 }
 
@@ -545,13 +545,11 @@ extension _Metadata {
 }
 
 protocol GWContextDescriptorProtocol {
-    var changeName: Int { get }
     var numberOfFields: Int { get }
     var fieldOffsetVector: Int { get }
     #if swift(>=5.0)
     var reflectionFieldDescriptor: Int { get }
     #endif
-//    var mangledNameOffset: Int { get }
 }
 
 protocol GW_ContextDescriptorType : GW_MetadataType {
@@ -559,13 +557,10 @@ protocol GW_ContextDescriptorType : GW_MetadataType {
 }
 
 protocol GW_ContextDescriptorProtocol {
-//    名称 - 5.0以后是偏移量
-    var changeName: Int32 { get }
 //    属性数量 - 必须
     var numberOfFields: Int32 { get }
 //    属性偏移量 - 必须
     var fieldOffsetVector: Int32 { get }
-    var fieldTypesAccessor: Int32 { get }
 //    反射属性描述 - 5.0
     #if swift(>=5.0)
     var reflectionFieldDescriptor: Int32 { get }
@@ -576,20 +571,12 @@ struct ContextDescriptor<T: GW_ContextDescriptorProtocol>: GWContextDescriptorPr
     
     var pointerUn: UnsafePointer<T>
     
-    var changeName: Int {
-        return Int(pointerUn.pointee.changeName)
-    }
-    
     var numberOfFields: Int {
         return Int(pointerUn.pointee.numberOfFields)
     }
     
     var fieldOffsetVector: Int {
         return Int(pointerUn.pointee.fieldOffsetVector)
-    }
-    
-    var fieldTypesAccessor: Int {
-        return Int(pointerUn.pointee.fieldTypesAccessor)
     }
     
     var reflectionFieldDescriptor: Int {
@@ -669,17 +656,6 @@ extension GW_ContextDescriptorType {
             return nil
         }
         return UnsafeRawPointer(bitPattern: base.pointee)
-    }
-    
-    var changeName: String {
-        let pointerClass = UnsafePointer<Int>(self.pointerUn)
-        let base = pointerClass.advanced(by: contextDescriptorOffsetLocation)
-        let mangledNameAddress = base.pointee + 2 * 4
-        if let offset = contextDescriptor?.changeName,
-            let cString = UnsafePointer<UInt8>(bitPattern: mangledNameAddress + offset) {
-            return String(cString: cString)
-        }
-        return ""
     }
     
     var numberOfFields: Int {

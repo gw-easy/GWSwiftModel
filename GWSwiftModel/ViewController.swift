@@ -54,9 +54,9 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-//        self.serialization()
+        self.serialization()
 //        self.addModelObject()
-//        self.deserialization()
+        self.deserialization()
         
 //        self.addTest_json()
         self.addTest_json2()
@@ -171,14 +171,9 @@ class ViewController: UIViewController {
         }
         let arrayJSONString = "[{\"id\":\"77544\",\"json_name\":\"Tom Li\",\"age\":18,\"grade\":2,\"height\":180,\"gender\":\"Female\",\"className\":\"A\",\"teacher\":{\"name\":\"Lucy He\",\"age\":28,\"height\":172,\"gender\":\"Female\",},\"subjects\":[{\"name\":\"math\",\"id\":18000324583,\"credit\":4,\"lessonPeriod\":48},{\"name\":\"computer\",\"id\":18000324584,\"credit\":8,\"lessonPeriod\":64}],\"seat\":\"4-3-23\"}]"
         
-//        Student.json_To_Model(json: arrayJSONString, designatedPath: nil)
-        if let students = Student.jsonToModel(json: arrayJSONString) as? [GW_ModelAndJson]{
+        if let students = Student.jsonToModel(json: arrayJSONString) as? [Student]{
             print(students[0].modelToJson() ?? "");
         }
-//        if let students = [Student].jsonToModel(from: arrayJSONString) {
-//            print(students.count)
-//            print(students[0]!.modelToJson()!)
-//        }
     }
 }
 

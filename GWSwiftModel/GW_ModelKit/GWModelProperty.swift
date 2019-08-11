@@ -65,7 +65,6 @@ struct GW_Property {
     let key: String
     let value: Any
     
-    /// An instance property description
     struct Description {
         public let key: String
         public let type: Any.Type
@@ -76,7 +75,6 @@ struct GW_Property {
     }
 }
 
-/// Retrieve property descriptions for `type`
 func getProperties(forType type: Any.Type) -> [GW_Property.Description]? {
     if let structDescriptor = Metadata.Struct(anyType: type) {
         return structDescriptor.propertyDescriptions()
