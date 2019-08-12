@@ -202,7 +202,7 @@ extension Optional:GWCustomBasicType{
 extension Collection{
     static func collectionJudgeType(from object: Any) -> [Iterator.Element]? {
         guard let arr = object as? [Any] else {
-            print("Expect object to be an array but it's not");
+            print("不是array类型");
             return nil;
         }
         typealias Element = Iterator.Element;
@@ -258,7 +258,7 @@ extension Set:GWCustomBasicType{
 extension Dictionary:GWCustomBasicType{
     public static func strJudgeType(from object: Any) -> Dictionary<Key, Value>? {
         guard let dict = object as? [String: Any] else {
-            print("Expect object to be an NSDictionary but it's not");
+            print("不是字典类型");
             return nil;
         }
         var result = [Key: Value]();
@@ -408,7 +408,7 @@ extension GWExpendModelType{
 //    inout 指的是获取对象内存地址
     static func strJudgeType(dict: [String: Any], to instance: inout Self) {
         guard let properties = getProperties(forType: Self.self) else {
-            print("Failed when try to get properties from type: \(type(of: Self.self))")
+            print("获取类型失败: \(type(of: Self.self))")
             return
         }
         

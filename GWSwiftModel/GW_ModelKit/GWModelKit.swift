@@ -73,30 +73,30 @@ public extension Collection where Iterator.Element: GW_ModelAndJson {
 public extension GW_ModelAndJson{
     static func jsonToModel(json:Any?,designatedPath: String? = nil) -> Any?{
         switch json {
-        case let ar as String:
+        case let obj as String:
             do{
-                let jsonObject = try JSONSerialization.jsonObject(with: ar.data(using: String.Encoding.utf8)!, options: .allowFragments)
+                let jsonObject = try JSONSerialization.jsonObject(with: obj.data(using: String.Encoding.utf8)!, options: .allowFragments)
                 return Self.jsonToModel(json: jsonObject,designatedPath: designatedPath)
             }catch let error{
                 print(error)
                 return nil;
             }
-        case let ar as Data:
+        case let obj as Data:
             do{
-                let jsonObject = try JSONSerialization.jsonObject(with: ar, options: .allowFragments)
+                let jsonObject = try JSONSerialization.jsonObject(with: obj, options: .allowFragments)
                 return Self.jsonToModel(json: jsonObject,designatedPath: designatedPath)
             }catch let error{
                 print(error)
                 return nil;
             }
-        case let ar as NSArray:
-            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar,designatedPath: designatedPath)
-        case let ar as [Any]:
-            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: ar,designatedPath: designatedPath)
-        case let ar as NSDictionary:
-            return JSONDeserializer<Self>.jsonToModelFrom(dict: ar, designatedPath: designatedPath)
-        case let ar as [String:Any]:
-            return JSONDeserializer<Self>.jsonToModelFrom(dict: ar, designatedPath: designatedPath)
+        case let obj as NSArray:
+            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: obj,designatedPath: designatedPath)
+        case let obj as [Any]:
+            return JSONDeserializer<Self>.jsonToModelArrayFrom(array: obj,designatedPath: designatedPath)
+        case let obj as NSDictionary:
+            return JSONDeserializer<Self>.jsonToModelFrom(dict: obj, designatedPath: designatedPath)
+        case let obj as [String:Any]:
+            return JSONDeserializer<Self>.jsonToModelFrom(dict: obj, designatedPath: designatedPath)
         default:
             return nil
         }
