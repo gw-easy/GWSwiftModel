@@ -557,10 +557,12 @@ struct ContextDescriptor<T: GW_ContextDescriptorProtocol>: GWContextDescriptorPr
     var fieldOffsetVector: Int {
         return Int(pointerUn.pointee.fieldOffsetVector)
     }
-    
+    #if swift(>=5.0)
     var reflectionFieldDescriptor: Int {
-        return Int(pointerUn.pointee.reflectionFieldDescriptor)
+    return Int(pointerUn.pointee.reflectionFieldDescriptor)
     }
+    #endif
+    
 }
 
 //结构体顺序不能乱
@@ -661,7 +663,7 @@ extension GW_ContextDescriptorType {
             }
         }
     }
-    
+    #if swift(>=5.0)
     var reflectionFieldDescriptor: GWFieldDescriptor? {
         guard let contextDescriptor = self.contextDescriptor else {
             return nil
@@ -675,6 +677,8 @@ extension GW_ContextDescriptorType {
         }
         return GWFieldDescriptor(pointerUn: fieldDescriptorPtr)
     }
+    #endif
+    
 }
 
 
