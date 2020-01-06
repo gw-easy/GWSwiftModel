@@ -683,25 +683,23 @@ extension GW_ContextDescriptorType {
     
 }
 
-
-
 var is64BitPlatform: Bool {
     return MemoryLayout<Int>.size == MemoryLayout<Int64>.size
 }
 
 
-@_silgen_name("swift_getTypeByMangledNameInContext")
-public func _getTypeByMangledNameInContext(
-    _ name: UnsafePointer<UInt8>,
-    _ nameLength: UInt,
-    genericContext: UnsafeRawPointer?,
-    genericArguments: UnsafeRawPointer?)
-    -> Any.Type?
-
-@_silgen_name("swift_getFieldAt")
-public func _getFieldAt(
-    _ type: Any.Type,
-    _ index: Int,
-    _ callback: @convention(c) (UnsafePointer<CChar>, UnsafeRawPointer, UnsafeMutableRawPointer) -> Void,
-    _ ctx: UnsafeMutableRawPointer
-)
+//@_silgen_name("swift_getTypeByMangledNameInContext")
+//public func _getTypeByMangledNameInContext(
+//    _ name: UnsafePointer<UInt8>,
+//    _ nameLength: UInt,
+//    genericContext: UnsafeRawPointer?,
+//    genericArguments: UnsafeRawPointer?)
+//    -> Any.Type?
+//
+//@_silgen_name("swift_getFieldAt")
+//public func _getFieldAt(
+//    _ type: Any.Type,
+//    _ index: Int,
+//    _ callback: @convention(c) (UnsafePointer<CChar>, UnsafeRawPointer, UnsafeMutableRawPointer) -> Void,
+//    _ ctx: UnsafeMutableRawPointer
+//)
