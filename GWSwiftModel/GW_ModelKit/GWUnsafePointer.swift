@@ -222,9 +222,7 @@ struct Metadata : GW_MetadataType {
     
     
 }
-let MetadataKindIsNonHeap = 0x200
-let MetadataKindIsRuntimePrivate = 0x100
-let MetadataKindIsNonType = 0x400
+
 extension Metadata {
     static let kind: Kind? = nil
     
@@ -246,43 +244,23 @@ extension Metadata {
         case `class` // The kind only valid for non-class metadata
         init(flag: Int) {
             print("flag = \(flag)")
-//            #if swift(>=5.0)
             switch flag {
-            case (0 | MetadataKindIsNonHeap): self = .struct
-            case (1 | MetadataKindIsNonHeap): self = .enum
-            case (2 | MetadataKindIsNonHeap): self = .optional
-            case (3 | MetadataKindIsNonHeap): self = .foreignClass
-            case (0 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .opaque
-            case (1 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .tuple
-            case (2 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .function
-            case (3 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .existential
-            case (4 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .metatype
-            case (5 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .objCClassWrapper
-            case (6 | MetadataKindIsRuntimePrivate | MetadataKindIsNonHeap): self = .existentialMetatype
-            case (0 | MetadataKindIsNonType): self = .heapLocalVariable
-            case (0 | MetadataKindIsNonType | MetadataKindIsRuntimePrivate): self = .heapGenericLocalVariable
-            case (1 | MetadataKindIsNonType | MetadataKindIsRuntimePrivate): self = .errorObject
+            case 1,512: self = .struct
+            case 2,513: self = .enum
+            case 3,514: self = .optional
+            case 8,768: self = .opaque
+            case 9,769: self = .tuple
+            case 10,770: self = .function
+            case 12,771: self = .existential
+            case 13,772: self = .metatype
+            case 14,773: self = .objCClassWrapper
+            case 15,774: self = .existentialMetatype
+            case 16,515: self = .foreignClass
+            case 64,1024: self = .heapLocalVariable
+            case 65,1280: self = .heapGenericLocalVariable
+            case 128,1281: self = .errorObject
             default: self = .class
             }
-//            #else
-//            switch flag {
-//            case 1: self = .struct
-//            case 2: self = .enum
-//            case 3: self = .optional
-//            case 8: self = .opaque
-//            case 9: self = .tuple
-//            case 10: self = .function
-//            case 12: self = .existential
-//            case 13: self = .metatype
-//            case 14: self = .objCClassWrapper
-//            case 15: self = .existentialMetatype
-//            case 16: self = .foreignClass
-//            case 64: self = .heapLocalVariable
-//            case 65: self = .heapGenericLocalVariable
-//            case 128: self = .errorObject
-//            default: self = .class
-//            }
-//            #endif
         }
     }
 }
