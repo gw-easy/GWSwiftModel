@@ -458,10 +458,10 @@ extension GWExpendModelType{
 extension GWExpendModelType {
     
     func strSomeValue() -> Any? {
-        return Self._serializeAny(object: self)
+        return Self.gw_serializeAny(object: self)
     }
     
-    static func _serializeAny(object: GWJudgeModelType) -> Any? {
+    static func gw_serializeAny(object: GWJudgeModelType) -> Any? {
         
         let mirror = Mirror(reflecting: object)
         
@@ -538,7 +538,7 @@ extension GWExpendModelType {
             }
             
             if let typedValue = realValue as? GWJudgeModelType {
-                if let result = self._serializeAny(object: typedValue) {
+                if let result = self.gw_serializeAny(object: typedValue) {
                     dict[realKey] = result
                     continue
                 }

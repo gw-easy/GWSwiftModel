@@ -23,7 +23,7 @@ struct Teacher: GW_ModelAndJson {
     var name: String?
     var age: Int?
     var height: Int?
-//    var gender: Gender?
+    var gender: Gender?
 }
 
 struct Subject: GW_ModelAndJson {
