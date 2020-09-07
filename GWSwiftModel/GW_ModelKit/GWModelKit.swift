@@ -15,7 +15,7 @@ public protocol GW_ModelAndJson : GWExpendModelType{
 //model->json
 public extension GW_ModelAndJson{
     func modelToJson() -> [String: Any]? {
-        if let dict = Self._serializeAny(object: self) as? [String: Any] {
+        if let dict = Self.gw_serializeAny(object: self) as? [String: Any] {
             return dict
         }
         return nil

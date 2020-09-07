@@ -23,6 +23,7 @@ enum GWFieldDescriptorKind : UInt16 {
     case ObjCClass
 }
 
+//MARK: - UnsafePointer
 extension UnsafePointer {
     init<T>(_ pointer: UnsafePointer<T>) {
         self = UnsafeRawPointer(pointer).assumingMemoryBound(to: Pointee.self)
@@ -278,7 +279,7 @@ extension Metadata {
 //                #else
 //                let lowbit = self.pointerUn.pointee.databits & 1
 //                #endif
-                
+
                 return lowbit == 1
             }
         }
@@ -352,6 +353,7 @@ extension Metadata {
 //
 //
 //
+
 //                    if let name = nameAndType.name, let type = nameAndType.type {
 //                        result.append(GW_Property.Description(key: name, type: type, offset: offsets[i]))
 //                    }
@@ -444,6 +446,8 @@ extension Metadata {
     }
 }
 
+
+
 // MARK: Metadata + ObjcClassWrapper 类型
 extension Metadata {
     struct ObjcClassWrapper: GW_ContextDescriptorType {
@@ -500,7 +504,7 @@ extension _Metadata {
         var nominalTypeDescriptor: Int
         var ivarDestroyer: Int
         func class_rw_t() -> UnsafePointer<_class_rw_t>? {
-            if MemoryLayout<Int>.size == MemoryLayout<Int64>.size {
+            if is64BitPlatform {
                 let fast_data_mask: UInt64 = 0x00007ffffffffff8
                 let databits_t: UInt64 = UInt64(self.databits)
                 return UnsafePointer<_class_rw_t>(bitPattern: UInt(databits_t & fast_data_mask))
@@ -684,8 +688,6 @@ extension GW_ContextDescriptorType {
     
 }
 
-
-
 var is64BitPlatform: Bool {
     return MemoryLayout<Int>.size == MemoryLayout<Int64>.size
 }
@@ -701,9 +703,13 @@ public func _getTypeByMangledNameInContext(
 //#else
 //@_silgen_name("swift_getFieldAt")
 //func _getFieldAt(
+
+//@_silgen_name("swift_getFieldAt")
+//public func _getFieldAt(
 //    _ type: Any.Type,
 //    _ index: Int,
 //    _ callback: @convention(c) (UnsafePointer<CChar>, UnsafeRawPointer, UnsafeMutableRawPointer) -> Void,
 //    _ ctx: UnsafeMutableRawPointer
 //)
 //#endif
+

@@ -26,14 +26,14 @@ extension GW_AnyExtensions{
         guard let wValue = value as? Self else {
             return
         }
-        print("write + \(Self.self)")
-        print("value + \(value)")
-        print("storage + \(storage)")
-        print("wValue + \(wValue)")
+//        print("write + \(Self.self)")
+//        print("value + \(value)")
+//        print("storage + \(storage)")
+//        print("wValue + \(wValue)")
         let uPoint:UnsafeMutablePointer = storage.assumingMemoryBound(to: self)
-        print("uPoint + \(uPoint)")
+//        print("uPoint + \(uPoint)")
         uPoint.pointee = wValue
-        print("pointee + \(uPoint.pointee)")
+//        print("pointee + \(uPoint.pointee)")
     }
     
     public static func takeValue(from anyValue: Any) -> Self? {
