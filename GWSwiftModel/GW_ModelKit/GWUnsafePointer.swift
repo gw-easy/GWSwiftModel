@@ -242,7 +242,7 @@ extension Metadata {
         case errorObject
         case `class` // The kind only valid for non-class metadata
         init(flag: Int) {
-            print("flag = \(flag)")
+//            print("flag = \(flag)")
             switch flag {
             case 1,512: self = .struct
             case 2,513: self = .enum
@@ -273,11 +273,11 @@ extension Metadata {
         
         var isSwiftClass: Bool {
             get {
-                #if swift(>=5.0)
+//                #if swift(>=5.0)
                 let lowbit = self.pointerUn.pointee.databits & 3
-                #else
-                let lowbit = self.pointerUn.pointee.databits & 1
-                #endif
+//                #else
+//                let lowbit = self.pointerUn.pointee.databits & 1
+//                #endif
                 
                 return lowbit == 1
             }
@@ -333,26 +333,29 @@ extension Metadata {
                     var type: Any.Type?
                 }
                 for i in 0..<self.numberOfFields {
-                    #if swift(>=5.0)
+//                    #if swift(>=5.0)
                     if let name = self.reflectionFieldDescriptor?.fieldRecords[i].fieldName,
                         let cMangledTypeName = self.reflectionFieldDescriptor?.fieldRecords[i].mangledTypeName,
                         let fieldType = _getTypeByMangledNameInContext(cMangledTypeName, 256, genericContext: self.contextDescriptorPointer, genericArguments: self.genericArgumentVector)
                     {
                         result.append(GW_Property.Description(key: name, type: fieldType, offset: offsets[i]))
                     }
-                    #else
-                    let selfType = unsafeBitCast(self.pointerUn, to: Any.Type.self)
-                    var nameAndType = NameAndType()
-                    _getFieldAt(selfType, i, { (name, type, nameAndTypePtr) in
-                        let name = String(cString: name)
-                        let type = unsafeBitCast(type, to: Any.Type.self)
-                        nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee.name = name
-                        nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee.type = type
-                    }, &nameAndType)
-                    if let name = nameAndType.name, let type = nameAndType.type {
-                        result.append(GW_Property.Description(key: name, type: type, offset: offsets[i]))
-                    }
-                    #endif
+//                    #else
+//                    let selfType = unsafeBitCast(self.pointerUn, to: Any.Type.self)
+//                    var nameAndType = NameAndType()
+//                     _getFieldAt(selfType, i, { (name, type, nameAndTypePtr) in
+//                        let name = String(cString: name)
+//                        let type = unsafeBitCast(type, to: Any.Type.self)
+//                            nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee.name = name
+//                            nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee.type = type
+//                        }, &nameAndType)
+//
+//
+//
+//                    if let name = nameAndType.name, let type = nameAndType.type {
+//                        result.append(GW_Property.Description(key: name, type: type, offset: offsets[i]))
+//                    }
+//                    #endif
                     
                 }
             }
@@ -415,26 +418,26 @@ extension Metadata {
                 var type: Any.Type?
             }
             for i in 0..<self.numberOfFields {
-                #if swift(>=5.0)
+//                #if swift(>=5.0)
                 if let name = self.reflectionFieldDescriptor?.fieldRecords[i].fieldName,
                     let cMangledTypeName = self.reflectionFieldDescriptor?.fieldRecords[i].mangledTypeName,
                     let fieldType = _getTypeByMangledNameInContext(cMangledTypeName, 256, genericContext: self.contextDescriptorPointer, genericArguments: self.genericArgumentVector){
                     result.append(GW_Property.Description(key: name, type: fieldType, offset: fieldOffsets[i]))
                 }
-                #else
-                let selfType = unsafeBitCast(self.pointerUn, to: Any.Type.self)
-                var nameAndType = NameAndType()
-                _getFieldAt(selfType, i, { (name, type, nameAndTypePtr) in
-                    let name = String(cString: name)
-                    let type = unsafeBitCast(type, to: Any.Type.self)
-                    let nameAndType = nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee
-                    nameAndType.name = name
-                    nameAndType.type = type
-                }, &nameAndType)
-                if let name = nameAndType.name, let type = nameAndType.type {
-                    result.append(GW_Property.Description(key: name, type: type, offset: fieldOffsets[i]))
-                }
-                #endif
+//                #else
+//                let selfType = unsafeBitCast(self.pointerUn, to: Any.Type.self)
+//                var nameAndType = NameAndType()
+//                _getFieldAt(selfType, i, { (name, type, nameAndTypePtr) in
+//                    let name = String(cString: name)
+//                    let type = unsafeBitCast(type, to: Any.Type.self)
+//                    let nameAndType = nameAndTypePtr.assumingMemoryBound(to: NameAndType.self).pointee
+//                    nameAndType.name = name
+//                    nameAndType.type = type
+//                }, &nameAndType)
+//                if let name = nameAndType.name, let type = nameAndType.type {
+//                    result.append(GW_Property.Description(key: name, type: type, offset: fieldOffsets[i]))
+//                }
+//                #endif
             }
             return result
         }
@@ -526,9 +529,9 @@ extension _Metadata {
 protocol GWContextDescriptorProtocol {
     var numberOfFields: Int { get }
     var fieldOffsetVector: Int { get }
-    #if swift(>=5.0)
+//    #if swift(>=5.0)
     var reflectionFieldDescriptor: Int { get }
-    #endif
+//    #endif
 }
 
 protocol GW_ContextDescriptorType : GW_MetadataType {
@@ -541,9 +544,9 @@ protocol GW_ContextDescriptorProtocol {
 //    属性偏移量 - 必须
     var fieldOffsetVector: Int32 { get }
 //    反射属性描述 - 5.0
-    #if swift(>=5.0)
+//    #if swift(>=5.0)
     var reflectionFieldDescriptor: Int32 { get }
-    #endif
+//    #endif
 }
 
 struct ContextDescriptor<T: GW_ContextDescriptorProtocol>: GWContextDescriptorProtocol, GW_PointerType {
@@ -557,11 +560,11 @@ struct ContextDescriptor<T: GW_ContextDescriptorProtocol>: GWContextDescriptorPr
     var fieldOffsetVector: Int {
         return Int(pointerUn.pointee.fieldOffsetVector)
     }
-    #if swift(>=5.0)
+//    #if swift(>=5.0)
     var reflectionFieldDescriptor: Int {
     return Int(pointerUn.pointee.reflectionFieldDescriptor)
     }
-    #endif
+//    #endif
     
 }
 
@@ -571,9 +574,9 @@ struct GW_StructContextDescriptor: GW_ContextDescriptorProtocol {
     var parent: Int32
     var changeName: Int32
     var fieldTypesAccessor: Int32
-    #if swift(>=5.0)
+//    #if swift(>=5.0)
     var reflectionFieldDescriptor: Int32
-    #endif
+//    #endif
     var numberOfFields: Int32
     var fieldOffsetVector: Int32
 }
@@ -583,9 +586,9 @@ struct GW_ClassContextDescriptor: GW_ContextDescriptorProtocol {
     var parent: Int32
     var changeName: Int32
     var fieldTypesAccessor: Int32
-    #if swift(>=5.0)
+//    #if swift(>=5.0)
     var reflectionFieldDescriptor: Int32
-    #endif
+//    #endif
     var superClsRef: Int32
     var reservedWord1: Int32
     var reservedWord2: Int32
@@ -663,7 +666,7 @@ extension GW_ContextDescriptorType {
             }
         }
     }
-    #if swift(>=5.0)
+//    #if swift(>=5.0)
     var reflectionFieldDescriptor: GWFieldDescriptor? {
         guard let contextDescriptor = self.contextDescriptor else {
             return nil
@@ -677,7 +680,7 @@ extension GW_ContextDescriptorType {
         }
         return GWFieldDescriptor(pointerUn: fieldDescriptorPtr)
     }
-    #endif
+//    #endif
     
 }
 
@@ -687,7 +690,7 @@ var is64BitPlatform: Bool {
     return MemoryLayout<Int>.size == MemoryLayout<Int64>.size
 }
 
-#if swift(>=5.0)
+//#if swift(>=5.0)
 @_silgen_name("swift_getTypeByMangledNameInContext")
 public func _getTypeByMangledNameInContext(
     _ name: UnsafePointer<UInt8>,
@@ -695,12 +698,12 @@ public func _getTypeByMangledNameInContext(
     genericContext: UnsafeRawPointer?,
     genericArguments: UnsafeRawPointer?)
     -> Any.Type?
-#else
-@_silgen_name("swift_getFieldAt")
-func _getFieldAt(
-    _ type: Any.Type,
-    _ index: Int,
-    _ callback: @convention(c) (UnsafePointer<CChar>, UnsafeRawPointer, UnsafeMutableRawPointer) -> Void,
-    _ ctx: UnsafeMutableRawPointer
-)
-#endif
+//#else
+//@_silgen_name("swift_getFieldAt")
+//func _getFieldAt(
+//    _ type: Any.Type,
+//    _ index: Int,
+//    _ callback: @convention(c) (UnsafePointer<CChar>, UnsafeRawPointer, UnsafeMutableRawPointer) -> Void,
+//    _ ctx: UnsafeMutableRawPointer
+//)
+//#endif
